@@ -1,4 +1,4 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
+using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
 using HistoricalDialogueRag.Core.Domain.Corpus;
 
 namespace HistoricalDialogueRag.Core.Application.Services.Indexing;
@@ -6,13 +6,21 @@ namespace HistoricalDialogueRag.Core.Application.Services.Indexing;
 public sealed class MarkdownChunker : IChunker
 {
     private const int MaxChunkChars = 1600;
-    private const int MinChunkChars = 300;
 
     public IReadOnlyList<DocumentChunk> Chunk(SourceDocument document)
     {
-        var paragraphs = document.Body
-            .Replace("\r\n", "\n")
-            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var body = NormalizeBody(document.Body);
+
+        if (string.IsNullOrWhiteSpace(body))
+            return [];
+
+        var paragraphs = body
+            .Split("\n\n", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(paragraph => !string.IsNullOrWhiteSpace(paragraph))
+            .ToList();
+
+        if (paragraphs.Count == 0)
+            return [];
 
         var chunks = new List<DocumentChunk>();
         var current = new List<string>();
@@ -21,7 +29,7 @@ public sealed class MarkdownChunker : IChunker
 
         foreach (var paragraph in paragraphs)
         {
-            if (currentLength + paragraph.Length > MaxChunkChars && currentLength >= MinChunkChars)
+            if (current.Count > 0 && currentLength + paragraph.Length > MaxChunkChars)
             {
                 AddChunk(document, chunks, current, chunkIndex++);
                 current.Clear();
@@ -38,10 +46,18 @@ public sealed class MarkdownChunker : IChunker
         return chunks;
     }
 
+    private static string NormalizeBody(string body)
+    {
+        return body
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
+            .Trim();
+    }
+
     private static void AddChunk(
         SourceDocument document,
         List<DocumentChunk> chunks,
-        List<string> paragraphs,
+        IReadOnlyList<string> paragraphs,
         int chunkIndex)
     {
         var text = string.Join("\n\n", paragraphs).Trim();

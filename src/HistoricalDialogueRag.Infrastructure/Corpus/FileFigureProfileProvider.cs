@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
 using HistoricalDialogueRag.Core.Domain.Figures;
 using HistoricalDialogueRag.Infrastructure.Configuration;
@@ -19,7 +19,8 @@ public sealed class FileFigureProfileProvider : IFigureProfileProvider
         string figureId,
         CancellationToken cancellationToken)
     {
-        var path = Path.Combine(_options.RootPath, figureId, "figure.json");
+        var path = ProjectPathResolver.Resolve(
+            Path.Combine(_options.RootPath, figureId, "figure.json"));
 
         if (!File.Exists(path))
             throw new FileNotFoundException($"Figure profile not found: {path}");
@@ -40,12 +41,14 @@ public sealed class FileFigureProfileProvider : IFigureProfileProvider
     public async Task<IReadOnlyList<HistoricalFigure>> GetFiguresAsync(
         CancellationToken cancellationToken)
     {
-        if (!Directory.Exists(_options.RootPath))
+        var corpusRoot = ProjectPathResolver.Resolve(_options.RootPath);
+
+        if (!Directory.Exists(corpusRoot))
             return [];
 
         var figures = new List<HistoricalFigure>();
 
-        foreach (var directory in Directory.GetDirectories(_options.RootPath))
+        foreach (var directory in Directory.GetDirectories(corpusRoot))
         {
             var figureId = Path.GetFileName(directory);
             var profilePath = Path.Combine(directory, "figure.json");

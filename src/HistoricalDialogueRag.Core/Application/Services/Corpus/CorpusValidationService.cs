@@ -1,4 +1,4 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
 using HistoricalDialogueRag.Core.Application.Contracts.Corpus;
 using HistoricalDialogueRag.Core.Domain.Corpus;
 
@@ -23,6 +23,9 @@ public sealed class CorpusValidationService : ICorpusValidator
 
         var errors = new List<string>();
         var warnings = new List<string>();
+
+        if (documents.Count == 0)
+            errors.Add($"No corpus documents found for figure '{figureId}'.");
 
         var duplicateIds = documents
             .GroupBy(document => document.Metadata.DocumentId)

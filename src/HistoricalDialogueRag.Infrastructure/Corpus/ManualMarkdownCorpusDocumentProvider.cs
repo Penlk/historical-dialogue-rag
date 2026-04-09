@@ -1,4 +1,4 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
 using HistoricalDialogueRag.Core.Domain.Corpus;
 using HistoricalDialogueRag.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
@@ -25,7 +25,8 @@ public sealed class ManualMarkdownCorpusDocumentProvider : ICorpusDocumentProvid
         CorpusDocumentQuery query,
         CancellationToken cancellationToken)
     {
-        var cleanDirectory = Path.Combine(_options.RootPath, query.FigureId, "clean");
+        var cleanDirectory = ProjectPathResolver.Resolve(
+            Path.Combine(_options.RootPath, query.FigureId, "clean"));
 
         if (!Directory.Exists(cleanDirectory))
             return [];
@@ -52,7 +53,10 @@ public sealed class ManualMarkdownCorpusDocumentProvider : ICorpusDocumentProvid
 
     private SourceDocument ParseMarkdown(string markdown, string path)
     {
-        var normalized = markdown.Replace("\r\n", "\n");
+        var normalized = markdown
+            .Replace("\r\n", "\n")
+            .Replace("\r", "\n")
+            .TrimStart('\uFEFF');
 
         if (!normalized.StartsWith("---\n", StringComparison.Ordinal))
             throw new InvalidOperationException($"Missing YAML front matter: {path}");
@@ -100,7 +104,7 @@ public sealed class ManualMarkdownCorpusDocumentProvider : ICorpusDocumentProvid
                 Date is null ? null : DateOnly.FromDateTime(Date.Value),
                 Year,
                 Required(TextLanguage, nameof(TextLanguage), path),
-                OriginalLanguage,
+                OriginalLanguage?.Trim(),
                 Required(SourceName, nameof(SourceName), path),
                 Required(SourceUrl, nameof(SourceUrl), path),
                 Required(License, nameof(License), path),

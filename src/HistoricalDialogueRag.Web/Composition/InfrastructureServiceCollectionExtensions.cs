@@ -1,6 +1,10 @@
 ﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
 using HistoricalDialogueRag.Infrastructure.Configuration;
 using HistoricalDialogueRag.Infrastructure.Corpus;
+using HistoricalDialogueRag.Infrastructure.Embeddings;
+using HistoricalDialogueRag.Infrastructure.Registry;
+using HistoricalDialogueRag.Infrastructure.VectorStore;
 
 namespace HistoricalDialogueRag.Web.Composition;
 
@@ -25,8 +29,21 @@ public static class InfrastructureServiceCollectionExtensions
                 options.VectorSize > 0)
             .ValidateOnStart();
 
+        services
+            .AddOptions<IndexingOptions>()
+            .Bind(configuration.GetSection(IndexingOptions.SectionName))
+            .Validate(options =>
+                !string.IsNullOrWhiteSpace(options.RegistryPath) &&
+                !string.IsNullOrWhiteSpace(options.LocalVectorStorePath) &&
+                options.DevVectorSize > 0)
+            .ValidateOnStart();
+
         services.AddSingleton<ICorpusDocumentProvider, ManualMarkdownCorpusDocumentProvider>();
         services.AddSingleton<IFigureProfileProvider, FileFigureProfileProvider>();
+
+        services.AddSingleton<IEmbeddingProvider, DeterministicDevEmbeddingProvider>();
+        services.AddSingleton<IVectorStore, LocalJsonVectorStore>();
+        services.AddSingleton<IIndexRegistry, JsonIndexRegistry>();
 
         return services;
     }

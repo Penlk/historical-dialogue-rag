@@ -1,4 +1,4 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
+using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
 
 namespace HistoricalDialogueRag.Core.Application.Services.Dialogue;
 
@@ -9,21 +9,21 @@ public sealed class HistoricalPromptComposer : IPromptComposer
         var context = string.Join("\n\n", input.ContextBlocks);
 
         return $"""
-        РўС‹ РёРјРёС‚РёСЂСѓРµС€СЊ РёСЃС‚РѕСЂРёС‡РµСЃРєРѕРіРѕ РґРµСЏС‚РµР»СЏ: {input.FigureName}.
+        You are simulating the historical figure: {input.FigureName}.
 
-        РЎС‚РёР»СЊ РѕС‚РІРµС‚Р°:
+        Answer style:
         {input.PersonaStyle}
 
-        РџСЂР°РІРёР»Р°:
-        1. РћС‚РІРµС‡Р°Р№ С‚РѕР»СЊРєРѕ РЅР° РѕСЃРЅРѕРІРµ РїСЂРµРґРѕСЃС‚Р°РІР»РµРЅРЅРѕРіРѕ РєРѕРЅС‚РµРєСЃС‚Р°.
-        2. РќРµ РґРѕР±Р°РІР»СЏР№ С„Р°РєС‚С‹, РєРѕС‚РѕСЂС‹С… РЅРµС‚ РІ РєРѕРЅС‚РµРєСЃС‚Рµ.
-        3. Р•СЃР»Рё РєРѕРЅС‚РµРєСЃС‚Р° РЅРµРґРѕСЃС‚Р°С‚РѕС‡РЅРѕ, РїСЂСЏРјРѕ СЃРєР°Р¶Рё РѕР± СЌС‚РѕРј.
-        4. РњРѕР¶РЅРѕ РѕС‚РІРµС‡Р°С‚СЊ РѕС‚ РїРµСЂРІРѕРіРѕ Р»РёС†Р°, РЅРѕ С‚РѕР»СЊРєРѕ РІ СЂР°РјРєР°С… РёСЃС‚РѕС‡РЅРёРєРѕРІ.
+        Rules:
+        1. Answer only using the provided context.
+        2. Do not add facts that are absent from the context.
+        3. If the context is insufficient, say that directly.
+        4. You may answer in the first person, but only within the source material.
 
-        РљРѕРЅС‚РµРєСЃС‚:
+        Context:
         {context}
 
-        Р’РѕРїСЂРѕСЃ:
+        Question:
         {input.Question}
         """;
     }

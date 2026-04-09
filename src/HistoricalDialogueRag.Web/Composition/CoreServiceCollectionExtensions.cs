@@ -13,6 +13,8 @@ public static class CoreServiceCollectionExtensions
     {
         services.AddSingleton<ICorpusValidator, CorpusValidationService>();
         services.AddSingleton<IChunker, MarkdownChunker>();
+        services.AddSingleton<ICorpusIndexingService, CorpusIndexingService>();
+        services.AddSingleton<IRebuildIndexService, RebuildIndexService>();
         services.AddSingleton<IPromptComposer, HistoricalPromptComposer>();
 
         return services;
