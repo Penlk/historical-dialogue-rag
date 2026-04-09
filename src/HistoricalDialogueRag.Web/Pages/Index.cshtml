@@ -1,10 +1,96 @@
-﻿@page
-@model IndexModel
+@page
+@model HistoricalDialogueRag.Web.Pages.IndexModel
+
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Historical Dialogue RAG";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<section class="hero">
+    <div>
+        <p class="eyebrow">Historical Dialogue RAG</p>
+        <h1>Ask a historical figure</h1>
+        <p class="muted">
+            Local MVP: manual Markdown corpus, local vector store, deterministic dev answer generator.
+        </p>
+    </div>
+</section>
+
+<div class="grid">
+    <section class="panel">
+        <h2>Question</h2>
+
+        <form method="post" class="form">
+            <div class="field">
+                <label asp-for="Input.FigureId">Figure</label>
+                <select asp-for="Input.FigureId">
+                    @foreach (var figure in Model.Figures)
+                    {
+                        <option value="@figure.FigureId">@figure.DisplayName (@figure.FigureId)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="field">
+                <label asp-for="Input.Question">Question</label>
+                <textarea asp-for="Input.Question" rows="8"></textarea>
+                <span asp-validation-for="Input.Question" class="validation"></span>
+            </div>
+
+            <div class="params">
+                <div class="field">
+                    <label asp-for="Input.TopK">TopK</label>
+                    <input asp-for="Input.TopK" type="number" min="1" max="20" />
+                </div>
+
+                <div class="field">
+                    <label asp-for="Input.MinScore">MinScore</label>
+                    <input asp-for="Input.MinScore" type="number" min="0" max="1" step="0.01" />
+                </div>
+            </div>
+
+            <button type="submit">Ask</button>
+        </form>
+    </section>
+
+    <section class="panel">
+        <h2>Answer</h2>
+
+        @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="alert error">@Model.ErrorMessage</div>
+        }
+
+        @if (Model.AskResponse is not null)
+        {
+            if (Model.AskResponse.UsedContext)
+            {
+                <div class="answer">@Model.AskResponse.Answer</div>
+
+                <h3>Sources</h3>
+                <ol class="sources">
+                    @foreach (var source in Model.AskResponse.Sources)
+                    {
+                        <li>
+                            <strong>@source.DocumentTitle</strong>
+                            <div>@source.Author, @source.DocumentType, @source.Year</div>
+                            <div>Chunk @source.ChunkIndex, score @source.Score</div>
+                            <a href="@source.SourceUrl" target="_blank" rel="noreferrer">@source.SourceName</a>
+                        </li>
+                    }
+                </ol>
+            }
+            else
+            {
+                <div class="alert">@Model.AskResponse.Message</div>
+            }
+        }
+        else
+        {
+            <p class="muted">Run ingest first, then ask a question.</p>
+        }
+    </section>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

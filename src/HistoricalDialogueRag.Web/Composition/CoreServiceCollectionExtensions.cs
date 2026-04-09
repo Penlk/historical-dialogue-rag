@@ -1,4 +1,4 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
 using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
 using HistoricalDialogueRag.Core.Application.Services.Corpus;
@@ -15,7 +15,9 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton<IChunker, MarkdownChunker>();
         services.AddSingleton<ICorpusIndexingService, CorpusIndexingService>();
         services.AddSingleton<IRebuildIndexService, RebuildIndexService>();
+        services.AddSingleton<IContextRetriever, ContextRetriever>();
         services.AddSingleton<IPromptComposer, HistoricalPromptComposer>();
+        services.AddSingleton<IDialogueService, DialogueService>();
 
         return services;
     }

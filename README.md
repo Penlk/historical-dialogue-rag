@@ -1,56 +1,68 @@
 # Historical Dialogue RAG
 
-Local ASP.NET Core application on .NET 9 for dialogue with a historical figure using a prepared text corpus.
+Local ASP.NET Core app on .NET 9 for grounded dialogue with a historical figure over a prepared text corpus.
 
 ## Stack
 
 - .NET 9
 - ASP.NET Core
 - Razor Pages
-- Qdrant later
-- Markdown with YAML front matter
-- Local dev vector store for early MVP checks
+- Qdrant later; local JSON vector store for current dev step
+- Markdown + YAML front matter corpus
 
-## Structure
+## Current MVP flow
 
 ```text
-src/HistoricalDialogueRag.Web             ASP.NET Core, Razor Pages, API, CLI
-src/HistoricalDialogueRag.Core            application and domain logic
-src/HistoricalDialogueRag.Infrastructure  corpus readers, vector store, providers
-data/corpus                               manually prepared historical texts
-data/registry                             local runtime index files
+manual corpus -> validate -> ingest -> local vector store -> ask -> dev answer with sources
 ```
 
 ## Commands
 
 Validate corpus:
 
-```powershell
+```bash
 dotnet run --project src/HistoricalDialogueRag.Web -- corpus validate --figure lenin
 ```
 
-Ingest corpus:
+Index corpus:
 
-```powershell
+```bash
 dotnet run --project src/HistoricalDialogueRag.Web -- ingest --figure lenin
 ```
 
 Rebuild index:
 
-```powershell
+```bash
 dotnet run --project src/HistoricalDialogueRag.Web -- rebuild --figure lenin
 ```
 
-Run web/API:
+Run site/API:
 
-```powershell
+```bash
 dotnet run --project src/HistoricalDialogueRag.Web -- api
 ```
 
-Health check:
+Open the URL printed by ASP.NET Core, usually:
 
 ```text
-http://localhost:5133/health
+http://localhost:5133
+```
+
+Ask endpoint:
+
+```http
+POST /api/dialogue/ask
+```
+
+Example request:
+
+```json
+{
+  "figureId": "lenin",
+  "question": "What is the main idea of the available text?",
+  "topK": 6,
+  "minScore": 0.0
+}
 ```
 
 ## Corpus format
@@ -60,4 +72,4 @@ data/corpus/{figureId}/figure.json
 data/corpus/{figureId}/clean/*.md
 ```
 
-Each Markdown file must start with YAML front matter and contain source text below it.
+Each `.md` file must contain YAML front matter and source text below it.

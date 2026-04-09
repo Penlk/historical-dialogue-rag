@@ -1,5 +1,7 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
+using HistoricalDialogueRag.Core.Application.Contracts.Dialogue;
 using HistoricalDialogueRag.Core.Application.Contracts.Indexing;
 using HistoricalDialogueRag.Web.Composition;
 
@@ -97,6 +99,15 @@ app.MapGet("/api/figures", async (
 {
     var figures = await figureProvider.GetFiguresAsync(cancellationToken);
     return Results.Ok(figures);
+});
+
+app.MapPost("/api/dialogue/ask", async (
+    AskRequest request,
+    IDialogueService dialogueService,
+    CancellationToken cancellationToken) =>
+{
+    var response = await dialogueService.AskAsync(request, cancellationToken);
+    return Results.Ok(response);
 });
 
 app.MapRazorPages();

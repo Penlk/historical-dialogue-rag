@@ -1,5 +1,7 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
+using HistoricalDialogueRag.Infrastructure.Answers;
 using HistoricalDialogueRag.Infrastructure.Configuration;
 using HistoricalDialogueRag.Infrastructure.Corpus;
 using HistoricalDialogueRag.Infrastructure.Embeddings;
@@ -44,6 +46,7 @@ public static class InfrastructureServiceCollectionExtensions
         services.AddSingleton<IEmbeddingProvider, DeterministicDevEmbeddingProvider>();
         services.AddSingleton<IVectorStore, LocalJsonVectorStore>();
         services.AddSingleton<IIndexRegistry, JsonIndexRegistry>();
+        services.AddSingleton<IAnswerGenerator, DevAnswerGenerator>();
 
         return services;
     }
