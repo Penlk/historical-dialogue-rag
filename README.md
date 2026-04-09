@@ -1,44 +1,63 @@
-﻿# Historical Dialogue RAG
+# Historical Dialogue RAG
 
-Р›РѕРєР°Р»СЊРЅРѕРµ ASP.NET Core РїСЂРёР»РѕР¶РµРЅРёРµ РЅР° .NET 9 РґР»СЏ РґРёР°Р»РѕРіР° СЃ РёСЃС‚РѕСЂРёС‡РµСЃРєРёРј РґРµСЏС‚РµР»РµРј РїРѕ РїРѕРґРіРѕС‚РѕРІР»РµРЅРЅРѕРјСѓ РєРѕСЂРїСѓСЃСѓ С‚РµРєСЃС‚РѕРІ.
+Local ASP.NET Core application on .NET 9 for dialogue with a historical figure using a prepared text corpus.
 
-## РўРµС…РЅРѕР»РѕРіРёРё
+## Stack
 
 - .NET 9
 - ASP.NET Core
 - Razor Pages
-- Qdrant
-- Markdown + YAML front matter
+- Qdrant later
+- Markdown with YAML front matter
+- Local dev vector store for early MVP checks
 
-## РЎС‚СЂСѓРєС‚СѓСЂР°
+## Structure
 
+```text
 src/HistoricalDialogueRag.Web             ASP.NET Core, Razor Pages, API, CLI
-src/HistoricalDialogueRag.Core            application Рё domain logic
-src/HistoricalDialogueRag.Infrastructure  Qdrant, providers, corpus readers
-data/corpus                               СЂСѓС‡РЅРѕР№ РєРѕСЂРїСѓСЃ РёСЃС‚РѕСЂРёС‡РµСЃРєРёС… С‚РµРєСЃС‚РѕРІ
-data/registry                             Р»РѕРєР°Р»СЊРЅС‹Рµ СЃР»СѓР¶РµР±РЅС‹Рµ РґР°РЅРЅС‹Рµ РёРЅРґРµРєСЃР°
+src/HistoricalDialogueRag.Core            application and domain logic
+src/HistoricalDialogueRag.Infrastructure  corpus readers, vector store, providers
+data/corpus                               manually prepared historical texts
+data/registry                             local runtime index files
+```
 
-## РљРѕРјР°РЅРґС‹
+## Commands
 
-Р—Р°РїСѓСЃРє Qdrant:
+Validate corpus:
 
-docker compose up -d
+```powershell
+dotnet run --project src/HistoricalDialogueRag.Web -- corpus validate --figure lenin
+```
 
-РџСЂРѕРІРµСЂРєР° РєРѕСЂРїСѓСЃР°:
+Ingest corpus:
 
-dotnet run --project src/HistoricalDialogueRag.Web -- corpus validate --figure napoleon
+```powershell
+dotnet run --project src/HistoricalDialogueRag.Web -- ingest --figure lenin
+```
 
-Р—Р°РїСѓСЃРє СЃР°Р№С‚Р°/API:
+Rebuild index:
 
+```powershell
+dotnet run --project src/HistoricalDialogueRag.Web -- rebuild --figure lenin
+```
+
+Run web/API:
+
+```powershell
 dotnet run --project src/HistoricalDialogueRag.Web -- api
+```
 
 Health check:
 
-http://localhost:5000/health
+```text
+http://localhost:5133/health
+```
 
-## Р¤РѕСЂРјР°С‚ РєРѕСЂРїСѓСЃР°
+## Corpus format
 
+```text
 data/corpus/{figureId}/figure.json
 data/corpus/{figureId}/clean/*.md
+```
 
-РљР°Р¶РґС‹Р№ .md РґРѕР»Р¶РµРЅ СЃРѕРґРµСЂР¶Р°С‚СЊ YAML front matter СЃ metadata Рё С‚РµРєСЃС‚ РёСЃС‚РѕС‡РЅРёРєР° РЅРёР¶Рµ.
+Each Markdown file must start with YAML front matter and contain source text below it.
