@@ -1,12 +1,12 @@
-using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
-using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
+﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
-using HistoricalDialogueRag.Infrastructure.Answers;
 using HistoricalDialogueRag.Infrastructure.Configuration;
 using HistoricalDialogueRag.Infrastructure.Corpus;
 using HistoricalDialogueRag.Infrastructure.Embeddings;
 using HistoricalDialogueRag.Infrastructure.Registry;
 using HistoricalDialogueRag.Infrastructure.VectorStore;
+using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
+using HistoricalDialogueRag.Infrastructure.Answers;
 
 namespace HistoricalDialogueRag.Web.Composition;
 
@@ -40,11 +40,13 @@ public static class InfrastructureServiceCollectionExtensions
                 options.DevVectorSize > 0)
             .ValidateOnStart();
 
+        services.AddHttpClient("Qdrant");
+
         services.AddSingleton<ICorpusDocumentProvider, ManualMarkdownCorpusDocumentProvider>();
         services.AddSingleton<IFigureProfileProvider, FileFigureProfileProvider>();
 
         services.AddSingleton<IEmbeddingProvider, DeterministicDevEmbeddingProvider>();
-        services.AddSingleton<IVectorStore, LocalJsonVectorStore>();
+        services.AddSingleton<IVectorStore, QdrantVectorStore>();
         services.AddSingleton<IIndexRegistry, JsonIndexRegistry>();
         services.AddSingleton<IAnswerGenerator, DevAnswerGenerator>();
 
