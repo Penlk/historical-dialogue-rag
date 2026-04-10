@@ -4,6 +4,7 @@ obj/
 .idea/
 *.user
 *.suo
+*.ps1
 
 .env
 **/appsettings.Development.json

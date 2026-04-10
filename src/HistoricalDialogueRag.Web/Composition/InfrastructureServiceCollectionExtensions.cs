@@ -1,12 +1,12 @@
-﻿using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Corpus;
+using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
+using HistoricalDialogueRag.Infrastructure.Answers;
 using HistoricalDialogueRag.Infrastructure.Configuration;
 using HistoricalDialogueRag.Infrastructure.Corpus;
 using HistoricalDialogueRag.Infrastructure.Embeddings;
 using HistoricalDialogueRag.Infrastructure.Registry;
 using HistoricalDialogueRag.Infrastructure.VectorStore;
-using HistoricalDialogueRag.Core.Application.Abstractions.Dialogue;
-using HistoricalDialogueRag.Infrastructure.Answers;
 
 namespace HistoricalDialogueRag.Web.Composition;
 
@@ -40,13 +40,28 @@ public static class InfrastructureServiceCollectionExtensions
                 options.DevVectorSize > 0)
             .ValidateOnStart();
 
-        services.AddHttpClient("Qdrant");
+        services
+            .AddOptions<EmbeddingsOptions>()
+            .Bind(configuration.GetSection(EmbeddingsOptions.SectionName))
+            .Validate(options =>
+                !string.IsNullOrWhiteSpace(options.Provider) &&
+                options.BatchSize > 0 &&
+                !string.IsNullOrWhiteSpace(options.Ollama.BaseUrl) &&
+                !string.IsNullOrWhiteSpace(options.Ollama.Model))
+            .ValidateOnStart();
+
+        services.AddHttpClient<OllamaEmbeddingProvider>();
+        services.AddHttpClient<QdrantVectorStore>();
 
         services.AddSingleton<ICorpusDocumentProvider, ManualMarkdownCorpusDocumentProvider>();
         services.AddSingleton<IFigureProfileProvider, FileFigureProfileProvider>();
 
-        services.AddSingleton<IEmbeddingProvider, DeterministicDevEmbeddingProvider>();
-        services.AddSingleton<IVectorStore, QdrantVectorStore>();
+        services.AddSingleton<IEmbeddingProvider>(serviceProvider =>
+            serviceProvider.GetRequiredService<OllamaEmbeddingProvider>());
+
+        services.AddSingleton<IVectorStore>(serviceProvider =>
+            serviceProvider.GetRequiredService<QdrantVectorStore>());
+
         services.AddSingleton<IIndexRegistry, JsonIndexRegistry>();
         services.AddSingleton<IAnswerGenerator, DevAnswerGenerator>();
 

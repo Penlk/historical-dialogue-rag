@@ -1,52 +1,48 @@
 # Historical Dialogue RAG
 
-Local ASP.NET Core application on .NET 9 for grounded dialogue with a historical figure over a prepared text corpus.
+Local ASP.NET Core app on .NET 9 for grounded dialogue with a historical figure over a prepared text corpus.
 
-## Current stage
+## Current MVP stack
 
-- Manual Markdown corpus with YAML front matter
-- Corpus validation command
-- Index/rebuild pipeline
-- Qdrant vector store
-- Dev deterministic embeddings
-- Local dev dialogue flow
+- .NET 9
+- ASP.NET Core Razor Pages
+- Qdrant
+- Ollama embeddings
+- Markdown corpus with YAML front matter
 
-## Run Qdrant
+## Main commands
+
+Start Qdrant:
 
 docker compose up -d
 
-Qdrant UI:
+Pull the embedding model:
 
-http://localhost:6333/dashboard
+ollama pull nomic-embed-text
 
-## Validate corpus
+Validate corpus:
 
 dotnet run --project src/HistoricalDialogueRag.Web -- corpus validate --figure lenin
 
-## Ingest corpus
-
-dotnet run --project src/HistoricalDialogueRag.Web -- ingest --figure lenin
-
-## Rebuild corpus index
+Rebuild index:
 
 dotnet run --project src/HistoricalDialogueRag.Web -- rebuild --figure lenin
 
-## Run site/API
+Run web app:
 
 dotnet run --project src/HistoricalDialogueRag.Web -- api
 
-Open the printed ASP.NET Core URL, usually:
+Qdrant dashboard:
 
-http://localhost:5133
+http://localhost:6333/dashboard
 
 ## Corpus format
 
 data/corpus/{figureId}/figure.json
 data/corpus/{figureId}/clean/*.md
 
-Each Markdown file must contain YAML front matter and the source text below it.
+Each Markdown document must contain YAML front matter and source text below it.
 
 ## Notes
 
-The current embedding provider is deterministic and intended only for local pipeline testing.
-Qdrant is already used as the vector store, but real semantic search quality requires a real embedding provider.
+The current answer generator is still a dev stub. Retrieval uses real Ollama embeddings and Qdrant.

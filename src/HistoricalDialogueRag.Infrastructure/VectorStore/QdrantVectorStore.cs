@@ -16,13 +16,14 @@ public sealed class QdrantVectorStore : IVectorStore
     private readonly HttpClient _httpClient;
     private readonly QdrantOptions _options;
 
-    public QdrantVectorStore(IOptions<QdrantOptions> options)
+    public QdrantVectorStore(
+        HttpClient httpClient,
+        IOptions<QdrantOptions> options)
     {
+        _httpClient = httpClient;
         _options = options.Value;
-        _httpClient = new HttpClient
-        {
-            BaseAddress = new Uri(_options.BaseUrl.TrimEnd('/'))
-        };
+
+        _httpClient.BaseAddress = new Uri(_options.BaseUrl.TrimEnd('/'));
     }
 
     public async Task UpsertAsync(
