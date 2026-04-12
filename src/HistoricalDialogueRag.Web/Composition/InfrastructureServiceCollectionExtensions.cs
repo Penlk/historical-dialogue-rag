@@ -23,21 +23,19 @@ public static class InfrastructureServiceCollectionExtensions
             .ValidateOnStart();
 
         services
+            .AddOptions<IndexingOptions>()
+            .Bind(configuration.GetSection(IndexingOptions.SectionName))
+            .Validate(options =>
+                !string.IsNullOrWhiteSpace(options.RegistryPath))
+            .ValidateOnStart();
+
+        services
             .AddOptions<QdrantOptions>()
             .Bind(configuration.GetSection(QdrantOptions.SectionName))
             .Validate(options =>
                 !string.IsNullOrWhiteSpace(options.BaseUrl) &&
                 !string.IsNullOrWhiteSpace(options.CollectionName) &&
                 options.VectorSize > 0)
-            .ValidateOnStart();
-
-        services
-            .AddOptions<IndexingOptions>()
-            .Bind(configuration.GetSection(IndexingOptions.SectionName))
-            .Validate(options =>
-                !string.IsNullOrWhiteSpace(options.RegistryPath) &&
-                !string.IsNullOrWhiteSpace(options.LocalVectorStorePath) &&
-                options.DevVectorSize > 0)
             .ValidateOnStart();
 
         services
@@ -50,7 +48,18 @@ public static class InfrastructureServiceCollectionExtensions
                 !string.IsNullOrWhiteSpace(options.Ollama.Model))
             .ValidateOnStart();
 
+        services
+            .AddOptions<AnswersOptions>()
+            .Bind(configuration.GetSection(AnswersOptions.SectionName))
+            .Validate(options =>
+                !string.IsNullOrWhiteSpace(options.Provider) &&
+                !string.IsNullOrWhiteSpace(options.Ollama.BaseUrl) &&
+                !string.IsNullOrWhiteSpace(options.Ollama.Model) &&
+                options.Ollama.NumPredict > 0)
+            .ValidateOnStart();
+
         services.AddHttpClient<OllamaEmbeddingProvider>();
+        services.AddHttpClient<OllamaAnswerGenerator>();
         services.AddHttpClient<QdrantVectorStore>();
 
         services.AddSingleton<ICorpusDocumentProvider, ManualMarkdownCorpusDocumentProvider>();
@@ -63,7 +72,9 @@ public static class InfrastructureServiceCollectionExtensions
             serviceProvider.GetRequiredService<QdrantVectorStore>());
 
         services.AddSingleton<IIndexRegistry, JsonIndexRegistry>();
-        services.AddSingleton<IAnswerGenerator, DevAnswerGenerator>();
+
+        services.AddSingleton<IAnswerGenerator>(serviceProvider =>
+            serviceProvider.GetRequiredService<OllamaAnswerGenerator>());
 
         return services;
     }
