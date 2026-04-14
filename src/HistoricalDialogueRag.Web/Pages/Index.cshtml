@@ -81,8 +81,11 @@
             }
             else
             {
-                <div class="alert">@Model.AskResponse.Message</div>
-            }
+                <div class="alert">
+                    <strong>Not enough source material.</strong>
+                    <div>@Model.AskResponse.Message</div>
+                </div>
+			}
         }
         else
         {

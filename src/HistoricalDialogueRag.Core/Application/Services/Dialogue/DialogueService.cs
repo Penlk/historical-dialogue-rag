@@ -103,17 +103,20 @@ public sealed class DialogueService : IDialogueService
         var metadata = item.Chunk.Metadata;
 
         return $"""
-        [S{sourceNumber}]
-        Title: {metadata.Title}
-        Author: {metadata.Author}
-        Type: {metadata.DocumentType}
-        Year: {metadata.Year?.ToString() ?? "unknown"}
-        Source: {metadata.SourceName}
-        Chunk: {item.Chunk.ChunkIndex}
-        Score: {item.Score:F3}
+                [Source {sourceNumber}]
+                Title: {metadata.Title}
+                Author: {metadata.Author}
+                Document type: {metadata.DocumentType}
+                Year: {metadata.Year?.ToString() ?? "unknown"}
+                Date: {metadata.Date?.ToString("yyyy-MM-dd") ?? "unknown"}
+                Source name: {metadata.SourceName}
+                Source URL: {metadata.SourceUrl}
+                Chunk index: {item.Chunk.ChunkIndex}
+                Relevance score: {item.Score:F3}
 
-        {item.Chunk.Text}
-        """;
+                Text:
+                {item.Chunk.Text}
+                """;
     }
 
     private static SourceDto ToSourceDto(RetrievedContextChunk item)

@@ -81,7 +81,7 @@ public class IndexModel : PageModel
 
         [Required]
         [StringLength(2000)]
-        public string Question { get; set; } = "What is the main idea of the available text?";
+        public string Question { get; set; } = "Какая главная мысль представленных текстов?";
 
         [Range(1, 20)]
         public int TopK { get; set; } = 6;
