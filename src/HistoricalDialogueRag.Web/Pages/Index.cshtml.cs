@@ -30,6 +30,21 @@ public class IndexModel : PageModel
 
     public string? ErrorMessage { get; private set; }
 
+    public bool HasFigures => Figures.Count > 0;
+
+    public string SelectedFigureName
+    {
+        get
+        {
+            var selected = Figures.FirstOrDefault(figure =>
+                figure.FigureId.Equals(Input.FigureId, StringComparison.OrdinalIgnoreCase));
+
+            return selected?.DisplayName
+                   ?? Figures.FirstOrDefault()?.DisplayName
+                   ?? "не выбран";
+        }
+    }
+
     public async Task OnGetAsync(CancellationToken cancellationToken)
     {
         await LoadFiguresAsync(cancellationToken);
@@ -39,9 +54,16 @@ public class IndexModel : PageModel
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
     {
         await LoadFiguresAsync(cancellationToken);
+        SetDefaultFigureIfNeeded();
 
         if (!ModelState.IsValid)
             return Page();
+
+        if (!HasFigures)
+        {
+            ErrorMessage = "Не найден ни один исторический деятель в data/corpus.";
+            return Page();
+        }
 
         try
         {
@@ -79,9 +101,9 @@ public class IndexModel : PageModel
         [Required]
         public string FigureId { get; set; } = "lenin";
 
-        [Required]
-        [StringLength(2000)]
-        public string Question { get; set; } = "Какая главная мысль представленных текстов?";
+        [Required(ErrorMessage = "Введите вопрос.")]
+        [StringLength(2000, ErrorMessage = "Вопрос слишком длинный.")]
+        public string Question { get; set; } = "Что такое государство?";
 
         [Range(1, 20)]
         public int TopK { get; set; } = 6;

@@ -2,79 +2,157 @@
 @model HistoricalDialogueRag.Web.Pages.IndexModel
 
 @{
-    ViewData["Title"] = "Historical Dialogue RAG";
+    ViewData["Title"] = "Диалог с историческим деятелем";
 }
 
 <section class="hero">
-    <div>
+    <div class="hero-content">
         <p class="eyebrow">Historical Dialogue RAG</p>
-        <h1>Ask a historical figure</h1>
-        <p class="muted">
-            Local MVP: manual Markdown corpus, Qdrant vector store, Ollama embeddings, Ollama answer generation.
+        <h1>Диалог с историческим деятелем</h1>
+        <p class="hero-text">
+            Задайте вопрос историческому деятелю. Система найдёт релевантные фрагменты в корпусе текстов,
+            сформирует ответ через Ollama и покажет использованные источники.
         </p>
+
+        <div class="badges">
+            <span>ASP.NET Core</span>
+            <span>Qdrant</span>
+            <span>Ollama</span>
+            <span>RAG</span>
+        </div>
     </div>
+
+    <aside class="hero-card">
+        <div class="hero-card-label">Текущий корпус</div>
+        <div class="hero-card-title">@Model.SelectedFigureName</div>
+        <div class="hero-card-text">
+            Перед вопросами выполните validate и rebuild, чтобы индекс в Qdrant соответствовал текущим текстам.
+        </div>
+    </aside>
 </section>
 
-<div class="grid">
-    <section class="panel">
-        <h2>Question</h2>
-
-        <form method="post" class="form">
-            <div class="field">
-                <label asp-for="Input.FigureId">Figure</label>
-                <select asp-for="Input.FigureId">
-                    @foreach (var figure in Model.Figures)
-                    {
-                        <option value="@figure.FigureId">@figure.DisplayName (@figure.FigureId)</option>
-                    }
-                </select>
+<div class="layout-grid">
+    <section class="panel question-panel">
+        <div class="panel-header">
+            <div>
+                <p class="section-kicker">Вопрос</p>
+                <h2>Спросить</h2>
             </div>
+        </div>
 
-            <div class="field">
-                <label asp-for="Input.Question">Question</label>
-                <textarea asp-for="Input.Question" rows="8"></textarea>
-                <span asp-validation-for="Input.Question" class="validation"></span>
+        @if (!Model.HasFigures)
+        {
+            <div class="alert alert-error">
+                <strong>Корпус не найден.</strong>
+                <div>Проверьте папку <code>data/corpus</code> и наличие <code>figure.json</code>.</div>
             </div>
-
-            <div class="params">
+        }
+        else
+        {
+            <form method="post" class="form">
                 <div class="field">
-                    <label asp-for="Input.TopK">TopK</label>
-                    <input asp-for="Input.TopK" type="number" min="1" max="20" />
+                    <label asp-for="Input.FigureId">Исторический деятель</label>
+                    <select asp-for="Input.FigureId">
+                        @foreach (var figure in Model.Figures)
+                        {
+                            <option value="@figure.FigureId">
+                                @figure.DisplayName (@figure.LifeYears)
+                            </option>
+                        }
+                    </select>
                 </div>
 
                 <div class="field">
-                    <label asp-for="Input.MinScore">MinScore</label>
-                    <input asp-for="Input.MinScore" type="number" min="0" max="1" step="0.01" />
+                    <label asp-for="Input.Question">Вопрос</label>
+                    <textarea asp-for="Input.Question" rows="9" placeholder="Например: что такое государство?"></textarea>
+                    <span asp-validation-for="Input.Question" class="validation"></span>
                 </div>
-            </div>
 
-            <button type="submit">Ask</button>
-        </form>
+                <div class="params">
+                    <div class="field">
+                        <label asp-for="Input.TopK">Количество фрагментов</label>
+                        <input asp-for="Input.TopK" type="number" min="1" max="20" />
+                    </div>
+
+                    <div class="field">
+                        <label asp-for="Input.MinScore">Минимальная релевантность</label>
+                        <input asp-for="Input.MinScore" type="number" min="0" max="1" step="0.01" />
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-button">
+                    Получить ответ
+                </button>
+            </form>
+        }
     </section>
 
-    <section class="panel">
-        <h2>Answer</h2>
+    <section class="panel answer-panel">
+        <div class="panel-header">
+            <div>
+                <p class="section-kicker">Ответ</p>
+                <h2>Результат</h2>
+            </div>
+
+            @if (Model.AskResponse is not null)
+            {
+                <span class="status-pill">
+                    @(Model.AskResponse.UsedContext ? "Контекст найден" : "Контекста недостаточно")
+                </span>
+            }
+        </div>
 
         @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
         {
-            <div class="alert error">@Model.ErrorMessage</div>
+            <div class="alert alert-error">
+                <strong>Ошибка.</strong>
+                <div>@Model.ErrorMessage</div>
+            </div>
+        }
+
+        @if (Model.AskResponse is null && string.IsNullOrWhiteSpace(Model.ErrorMessage))
+        {
+            <div class="empty-state">
+                <div class="empty-state-icon">?</div>
+                <h3>Ответ появится здесь</h3>
+                <p>
+                    Сначала пересоберите индекс командой <code>rebuild</code>, затем задайте вопрос.
+                </p>
+            </div>
         }
 
         @if (Model.AskResponse is not null)
         {
             if (Model.AskResponse.UsedContext)
             {
-                <div class="answer">@Model.AskResponse.Answer</div>
+                <article class="answer">
+                    @Model.AskResponse.Answer
+                </article>
 
-                <h3>Sources</h3>
+                <div class="sources-header">
+                    <h3>Источники</h3>
+                    <span>@Model.AskResponse.Sources.Count шт.</span>
+                </div>
+
                 <ol class="sources">
                     @foreach (var source in Model.AskResponse.Sources)
                     {
-                        <li>
-                            <strong>@source.DocumentTitle</strong>
-                            <div>@source.Author, @source.DocumentType, @source.Year</div>
-                            <div>Chunk @source.ChunkIndex, score @source.Score</div>
-                            <a href="@source.SourceUrl" target="_blank" rel="noreferrer">@source.SourceName</a>
+                        <li class="source-card">
+                            <div class="source-main">
+                                <strong>@source.DocumentTitle</strong>
+                                <div class="source-meta">
+                                    @source.Author · @source.DocumentType · @(source.Year?.ToString() ?? "год неизвестен")
+                                </div>
+                            </div>
+
+                            <div class="source-details">
+                                <span>Фрагмент: @source.ChunkIndex</span>
+                                <span>Score: @source.Score</span>
+                            </div>
+
+                            <a href="@source.SourceUrl" target="_blank" rel="noreferrer">
+                                @source.SourceName
+                            </a>
                         </li>
                     }
                 </ol>
@@ -82,14 +160,10 @@
             else
             {
                 <div class="alert">
-                    <strong>Not enough source material.</strong>
+                    <strong>Недостаточно источников.</strong>
                     <div>@Model.AskResponse.Message</div>
                 </div>
-			}
-        }
-        else
-        {
-            <p class="muted">Run ingest first, then ask a question.</p>
+            }
         }
     </section>
 </div>
