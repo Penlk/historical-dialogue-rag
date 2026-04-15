@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using HistoricalDialogueRag.Core.Application.Abstractions.Indexing;
 using HistoricalDialogueRag.Core.Domain.Corpus;
 using HistoricalDialogueRag.Infrastructure.Configuration;
@@ -308,44 +309,73 @@ public sealed class QdrantVectorStore : IVectorStore
     }
 
     private sealed record QdrantCreateCollectionRequest(
+        [property: JsonPropertyName("vectors")]
         QdrantVectorsConfig Vectors);
 
     private sealed record QdrantVectorsConfig(
+        [property: JsonPropertyName("size")]
         int Size,
+
+        [property: JsonPropertyName("distance")]
         string Distance);
 
     private sealed record QdrantUpsertRequest(
+        [property: JsonPropertyName("points")]
         IReadOnlyList<QdrantPoint> Points);
 
     private sealed record QdrantPoint(
+        [property: JsonPropertyName("id")]
         Guid Id,
+
+        [property: JsonPropertyName("vector")]
         float[] Vector,
+
+        [property: JsonPropertyName("payload")]
         Dictionary<string, object?> Payload);
 
     private sealed record QdrantSearchRequest(
+        [property: JsonPropertyName("vector")]
         float[] Vector,
+
+        [property: JsonPropertyName("limit")]
         int Limit,
+
+        [property: JsonPropertyName("score_threshold")]
         double ScoreThreshold,
+
+        [property: JsonPropertyName("with_payload")]
         bool WithPayload,
+
+        [property: JsonPropertyName("filter")]
         QdrantFilter Filter);
 
     private sealed record QdrantSearchResponse(
+        [property: JsonPropertyName("result")]
         IReadOnlyList<QdrantScoredPoint> Result);
 
     private sealed record QdrantScoredPoint(
+        [property: JsonPropertyName("score")]
         double Score,
+
+        [property: JsonPropertyName("payload")]
         Dictionary<string, JsonElement>? Payload);
 
     private sealed record QdrantDeleteRequest(
+        [property: JsonPropertyName("filter")]
         QdrantFilter Filter);
 
     private sealed record QdrantFilter(
+        [property: JsonPropertyName("must")]
         IReadOnlyList<QdrantFilterCondition> Must);
 
     private sealed record QdrantFilterCondition(
+        [property: JsonPropertyName("key")]
         string Key,
+
+        [property: JsonPropertyName("match")]
         QdrantMatchValue Match);
 
     private sealed record QdrantMatchValue(
+        [property: JsonPropertyName("value")]
         string Value);
 }
